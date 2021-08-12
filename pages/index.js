@@ -1,6 +1,4 @@
 import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
 
 import firebase from 'firebase/app';
 import 'firebase/firestore'
@@ -32,9 +30,12 @@ export default function Home() {
   const [user] = useAuthState(auth)
 
   return (
-    <div className={styles.container}>
-        <h1>Welcome to my virtual guestbook!</h1>
-        <section>
+    <div className="p-6 mx-auto">
+        <header className="pb-8 flex justify-between w-full justify-center">
+          <h1>Firechat</h1>
+          {user && <SignOut />}
+        </header>
+        <section className="flex justify-center">
           {user ? <Feed /> : <SignIn />}
         </section>
     </div>
@@ -47,13 +48,15 @@ function SignIn() {
     auth.signInWithPopup(provider)
   }
   return (
-    <button onClick={signInWithGoogle}>Sign in with Google</button>
+    <div className="pt-64">
+      <button className="py-2 px-4 font-semibold rounded-lg shadow-md text-white bg-black hover:bg-gray-700" onClick={signInWithGoogle}>Sign in with Google</button>
+    </div>
   )
 }
 
 function SignOut(){
   return auth.currentUser && (
-    <button onClick={() => auth.signOut()}>Sign Out</button>
+    <button className="py-2 px-4 font-semibold rounded-lg shadow-md text-white bg-black hover:bg-gray-700" onClick={() => auth.signOut()}>Sign Out</button>
   )
 }
 
@@ -86,7 +89,6 @@ function Feed() {
   return (
     <>
     <main>
-    <SignOut />
     {messages && messages.map(msg => <Message key={msg.id} message={msg} />)}
     <div ref={dummy}></div>
     </main>
@@ -104,8 +106,8 @@ function Message(props){
   const messageStatus = uid === auth.currentUser.uid ? 'sent' : 'received'
 
   return (
-    <div>
-      <img src={photoURL} alt="" />
+    <div className="flex my-4 items-center">
+      <img className="rounded-full h-8 w-8" src={photoURL} alt="" />
       <h3>{text}</h3>
     </div>
   )
