@@ -8,6 +8,7 @@ import 'firebase/auth'
 
 import { useAuthState } from 'react-firebase-hooks/auth'
 import { useCollectionData } from 'react-firebase-hooks/firestore'
+import { useRef, useState } from 'react';
 
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -61,19 +62,51 @@ function Feed() {
   const messagesRef = firestore.collection('messages')
   const query = messagesRef.orderBy('createdAt').limit(25)
 
+  const dummy = useRef()
   const [messages] = useCollectionData(query, {idField: 'id'})
+  const [formValue, setFormValue] = useState('');
+
+  const sendMessage = async(e) => {
+    e.preventDefault()
+
+    const { uid, photoURL } = auth.currentUser
+
+    await messagesRef.add({
+      text: formValue,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      uid,
+      photoURL
+    })
+
+    setFormValue('')
+
+    dummy.current.scrollIntoView({ behaviour: 'smooth' })
+  }
 
   return (
-    <div>
+    <>
+    <main>
     <SignOut />
     {messages && messages.map(msg => <Message key={msg.id} message={msg} />)}
-    </div>
+    <div ref={dummy}></div>
+    </main>
+    <form onSubmit={sendMessage}>
+      <input value={formValue} onChange={(e) => setFormValue(e.target.value)} />
+      <button type="submit">Send</button>
+    </form>
+    </>
   )
 }
 
 function Message(props){
-  const { text, uid } = props.message
+  const { text, uid, photoURL } = props.message
+
+  const messageStatus = uid === auth.currentUser.uid ? 'sent' : 'received'
+
   return (
-    <p>{text}</p>
+    <div>
+      <img src={photoURL} alt="" />
+      <h3>{text}</h3>
+    </div>
   )
 }
