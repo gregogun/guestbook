@@ -6,7 +6,7 @@ import 'firebase/auth'
 
 import { useAuthState } from 'react-firebase-hooks/auth'
 import { useCollectionData } from 'react-firebase-hooks/firestore'
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 if (!firebase.apps.length) {
   firebase.initializeApp({
@@ -30,8 +30,8 @@ export default function Home() {
   const [user] = useAuthState(auth)
 
   return (
-    <div className="mx-auto">
-        <header className="bg-white fixed top-0 p-4 flex justify-between w-full justify-center border-b-2 border-gray-100">
+    <div className="mx-auto maxW-10/12">
+        <header className="bg-white w-full fixed top-0 p-4 flex justify-between justify-center border-b-2 border-gray-100">
           <h1 className="text-2xl"><span>🔥</span> Firechat</h1>
           {user && <SignOut />}
         </header>
@@ -47,7 +47,7 @@ function SignIn() {
   }
   return (
     <div className="w-full pt-64 flex">
-      <button className="py-2 px-4 mx-auto display-block font-semibold shadow-md text-white bg-black hover:bg-gray-700 rounded-md" onClick={signInWithGoogle}>Sign in with Google</button>
+      <button className="py-4 px-8 mx-auto text-lg display-block font-semibold shadow-md text-white bg-black hover:bg-gray-800 rounded-md" onClick={signInWithGoogle}>Sign in with Google</button>
     </div>
   )
 }
@@ -63,9 +63,14 @@ function Feed() {
   const messagesRef = firestore.collection('messages')
   const query = messagesRef.orderBy('createdAt').limit(25)
 
-  const dummy = useRef()
+  const bottomRef = useRef(null)
   const [messages] = useCollectionData(query, {idField: 'id'})
   const [formValue, setFormValue] = useState('');
+
+  const scrollToBottom = () => {
+    bottomRef.current.scrollIntoView({  behavior: "smooth",
+    block: "start", })
+  }
 
   const sendMessage = async(e) => {
     e.preventDefault()
@@ -76,22 +81,26 @@ function Feed() {
       text: formValue,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       uid,
-      photoURL
+      photoURL,
     })
 
     setFormValue('')
 
-    dummy.current.scrollIntoView({ behaviour: 'smooth' })
+    scrollToBottom()
   }
+
+  useEffect(() => {
+    scrollToBottom()
+  })
 
   return (
     <section className="my-12">
       <main className="p-4 h-4/5 overflow-scroll">
         {messages && messages.map(msg => <Message key={msg.id} message={msg} />)}
-        <div ref={dummy}></div>
+        <span ref={bottomRef}></span>
       </main>
       <form className="bg-gray-500 w-full flex justify-between fixed bottom-0" onSubmit={sendMessage}>
-        <input className="h-16 w-4/5 rounded-none bg-gray-200 px-2 text-lg" placeholder="Share something nice here :)" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
+        <input className="h-16 w-4/5 rounded-none bg-gray-200 px-8 text-lg" placeholder="Share something nice here :)" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
         <button disabled={!formValue} className={`disabled:opacity-50 disabled:cursor-not-allowed rounded-none h-16 w-1/5 py-2 px-4 font-semibold shadow-md text-white bg-blue-500 rounded-none text-lg`} type="submit">Send <span>🕊</span></button>
       </form>
     </section>
@@ -99,9 +108,24 @@ function Feed() {
 }
 
 function Message(props){
-  const { text, uid, photoURL } = props.message
+  const { text, uid, photoURL, id } = props.message
+  const messagesRef = firestore.collection('messages')
 
   const messageStatus = uid === auth.currentUser.uid ? 'sent' : 'received'
+
+  const deleteMessage = async (e, docId) => {
+    e.preventDefault()
+
+    const { uid } = auth.currentUser
+
+    if (uid === auth.currentUser.uid) {
+      await messagesRef.doc(`${docId}`).delete().then(() => {
+        console.log('successfully deleted!!');
+      }).catch((error) => {
+        console.error('something went wrong!', error);
+      })
+    }
+  }
 
   return (
     <div className={`flex my-6 items-center ${messageStatus === 'sent' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -109,6 +133,7 @@ function Message(props){
       <div className={`${messageStatus === 'sent' ? 'p-4 bg-black text-white rounded-l-full rounded-tr-full' : 'p-4 bg-gray-200 rounded-r-full rounded-tl-full'} mr-2`}>
         <h3 className="text-md">{text}</h3>
       </div>
+      {messageStatus === "sent" && <span onClick={(e) => deleteMessage(e, id)} className="cursor-pointer mr-2">🗑</span>}
     </div>
   )
 }
