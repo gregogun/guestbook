@@ -46,7 +46,7 @@ function SignIn() {
     auth.signInWithPopup(provider)
   }
   return (
-    <div className="w-full pt-64 flex">
+    <div className="maxW-10/12 pt-64 flex">
       <button className="py-4 px-8 mx-auto text-lg display-block font-semibold shadow-md text-white bg-black hover:bg-gray-800 rounded-md" onClick={signInWithGoogle}>Sign in with Google</button>
     </div>
   )
