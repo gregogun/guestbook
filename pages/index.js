@@ -8,15 +8,18 @@ import { useAuthState } from 'react-firebase-hooks/auth'
 import { useCollectionData } from 'react-firebase-hooks/firestore'
 import { useEffect, useRef, useState } from 'react';
 
+
+
+
 if (!firebase.apps.length) {
   firebase.initializeApp({
-    apiKey: "AIzaSyCq5Gg_9SzIPVyPRDaUFTW797SUSfxp-No",
-    authDomain: "guestbook-d36f8.firebaseapp.com",
-    projectId: "guestbook-d36f8",
-    storageBucket: "guestbook-d36f8.appspot.com",
-    messagingSenderId: "888411020306",
-    appId: "1:888411020306:web:df8e5b63ea59df0698cccb",
-    measurementId: "G-7X1ZLPQQLH"
+    apiKey: process.env.NEXT_PUBLIC_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_MEASUREMENT_ID
   })
 } else {
   firebase.app()
@@ -26,16 +29,17 @@ const auth = firebase.auth()
 const firestore = firebase.firestore()
 
 
+
 export default function Home() {
   const [user] = useAuthState(auth)
 
   return (
-    <div className="mx-auto maxW-10/12">
+    <div >
         <header className="bg-white w-full fixed top-0 p-4 flex justify-between justify-center border-b-2 border-gray-100">
-          <h1 className="text-2xl"><span>🔥</span> Firechat</h1>
+          <h1 className="text-2xl"><span>🔥</span>greg's guestbook</h1>
           {user && <SignOut />}
         </header>
-          {user ? <Feed /> : <SignIn />}
+          <div className="bg=gray-500 maxW-80">{user ? <Feed /> : <SignIn />}</div>
     </div>
   )
 }
@@ -46,7 +50,7 @@ function SignIn() {
     auth.signInWithPopup(provider)
   }
   return (
-    <div className="maxW-10/12 pt-64 flex">
+    <div className="mx-auto w-6/12 pt-64 flex">
       <button className="py-4 px-8 mx-auto text-lg display-block font-semibold shadow-md text-white bg-black hover:bg-gray-800 rounded-md" onClick={signInWithGoogle}>Sign in with Google</button>
     </div>
   )
@@ -95,13 +99,13 @@ function Feed() {
 
   return (
     <section className="my-12">
-      <main className="p-4 h-4/5 overflow-scroll">
+      <main className="p-4 h-4/5 overflow-x-hidden ">
         {messages && messages.map(msg => <Message key={msg.id} message={msg} />)}
         <span ref={bottomRef}></span>
       </main>
       <form className="bg-gray-500 w-full flex justify-between fixed bottom-0" onSubmit={sendMessage}>
         <input className="h-16 w-4/5 rounded-none bg-gray-200 px-8 text-lg" placeholder="Share something nice here :)" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
-        <button disabled={!formValue} className={`disabled:opacity-50 disabled:cursor-not-allowed rounded-none h-16 w-1/5 py-2 px-4 font-semibold shadow-md text-white bg-blue-500 rounded-none text-lg`} type="submit">Send <span>🕊</span></button>
+        <button disabled={!formValue} className={`disabled:opacity-50 disabled:cursor-not-allowed rounded-none h-16 w-1/5 py-2 px-4 font-semibold shadow-md text-white bg-black rounded-none text-lg`} type="submit">Send <span>🕊</span></button>
       </form>
     </section>
   )
